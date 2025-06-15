@@ -1,12 +1,41 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
+import api from "@/lib/axios";
+
+interface Driver {
+  id: string;
+  name: string;
+  status: string;
+  created_at: string;
+}
 
 export default function DriverPage() {
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  async function fetchData() {
+    try {
+      const dataRes = await api.get("/driver");
+      setDrivers(dataRes.data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching drivers:", error);
+      setDrivers([]);
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   return (
     <>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Driver</h1>
       </div>
-      <div className="bg-white rounded-lg shadow p-6 border border-muted">
+      <div className="bg-white rounded-lg shadow p-6 border border-muted overflow-x-auto">
         <table className="min-w-full">
           <thead>
             <tr>
@@ -17,10 +46,24 @@ export default function DriverPage() {
             </tr>
           </thead>
           <tbody>
-            {/* Empty table body */}
-            <tr>
-              <td colSpan={3} className="text-center text-muted-foreground py-8">No drivers found.</td>
-            </tr>
+            {loading ? (
+              <tr>
+                <td colSpan={4} className="text-center text-muted-foreground py-8">Loading...</td>
+              </tr>
+            ) : drivers.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="text-center text-muted-foreground py-8">No drivers found.</td>
+              </tr>
+            ) : (
+              drivers.map((driver) => (
+                <tr key={driver.id}>
+                  <td className="px-4 py-2">{driver.name}</td>
+                  <td className="px-4 py-2">{driver.status}</td>
+                  <td className="px-4 py-2">{driver.created_at}</td>
+                  <td className="px-4 py-2">-</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

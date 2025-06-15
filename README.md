@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<br />
+<div>
+  <h3>Car Booking App</h3>
 
-## Getting Started
+  <p>
+    <strong>Frontend aplikasi pemesanan mobil</strong>
+    <br /><br />
+    <a href="https://github.com/rickytedjo/car_booking_app"><strong>App API here</strong></a>
+  </p>
+</div>
 
-First, run the development server:
+## Stacks
+<div>
+<a href="https://nextjs.org/">
+
+![Next.js](https://img.shields.io/badge/Next.js-000000?logo=next.js&logoColor=white&style=for-the-badge)
+
+</a>
+
+<a href="https://www.react.dev/">
+
+![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB&style=for-the-badge)
+
+</a>
+
+<a href="https://https://tailwindcss.com">
+
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white&style=for-the-badge)
+
+</a>
+</div>
+
+## Prerequisites
+
+Ensure you have the following installed:
+
+1. **Node.js** (v18 or higher) - [Download Node.js](https://nodejs.org/)
+2. **npm** (bundled with Node.js) or **Yarn** (latest version)
+3. **Git** - [Download Git](https://git-scm.com/)
+
+
+## 🚦 Instalasi
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/rickytedjo/car_ui
+cd car_ui
+```
+--- 
+### 2. Install Dependencies
+
+Run the following command to install required packages:
+
+```bash
+npm install
+```
+
+or if using Yarn:
+
+```bash
+yarn install
+```
+---
+### 3. Environment Setup
+
+Create a `.env` file in the root directory. Use the `.env.example` file as a template:
+
+```bash
+cp .env.example .env
+```
+
+Fill in the necessary environment variables in the `.env` file. For example:
+
+```env
+JWT_SECRET= # Your JWT secret key, make it the same as in your API environment's
+NEXT_PUBLIC_API_URL="http://localhost:8000/api" # The base URL of your API, change it if your API is hosted elsewhere
+```
+
+---
+
+### 4. Start the Frontend
+
+Run the frontend in development mode:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Kontak
+Email: <rickyputra.tedjo@gmail.com>
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Link Proyek: <https://github.com/rickytedjo/car_booking_app>
