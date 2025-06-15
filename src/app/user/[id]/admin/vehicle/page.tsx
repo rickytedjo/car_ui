@@ -19,6 +19,7 @@ export default function VehiclePage() {
     status: 'Free',
   });
   const [submitting, setSubmitting] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
 
   async function fetchData() {
     try {
@@ -43,16 +44,40 @@ export default function VehiclePage() {
     }));
   };
 
+  const handleEdit = (vehicle: Vehicle) => {
+    setForm({ name: vehicle.name, status: vehicle.status });
+    setEditId(vehicle.id);
+    setShowModal(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this vehicle?')) return;
+    setSubmitting(true);
+    try {
+      await api.delete(`/car/${id}`);
+      fetchData();
+    } catch (error) {
+      console.error('Error deleting vehicle:', error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await api.post('/car', form);
+      if (editId) {
+        await api.patch(`/car/${editId}`, form);
+      } else {
+        await api.post('/car', form);
+      }
       setShowModal(false);
       setForm({ name: '', status: 'Free' });
+      setEditId(null);
       fetchData();
     } catch (error) {
-      console.error('Error creating vehicle:', error);
+      console.error(editId ? 'Error editing vehicle:' : 'Error creating vehicle:', error);
     } finally {
       setSubmitting(false);
     }
@@ -76,16 +101,17 @@ export default function VehiclePage() {
               <th className="px-4 py-2 text-left text-muted-foreground">Name</th>
               <th className="px-4 py-2 text-left text-muted-foreground">Status</th>
               <th className="px-4 py-2 text-left text-muted-foreground">Created At</th>
+              <th className="px-4 py-2 text-left text-muted-foreground">Action</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={3} className="text-center text-muted-foreground py-8">Loading...</td>
+                <td colSpan={4} className="text-center text-muted-foreground py-8">Loading...</td>
               </tr>
             ) : vehicles.length === 0 ? (
               <tr>
-                <td colSpan={3} className="text-center text-muted-foreground py-8">No vehicles found.</td>
+                <td colSpan={4} className="text-center text-muted-foreground py-8">No vehicles found.</td>
               </tr>
             ) : (
               vehicles.map((vehicle) => (
@@ -93,6 +119,21 @@ export default function VehiclePage() {
                   <td className="px-4 py-2">{vehicle.name}</td>
                   <td className="px-4 py-2">{vehicle.status}</td>
                   <td className="px-4 py-2">{vehicle.created_at}</td>
+                  <td className="px-4 py-2">
+                    <button
+                      className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 mr-2"
+                      onClick={() => handleEdit(vehicle)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700"
+                      onClick={() => handleDelete(vehicle.id)}
+                      disabled={submitting}
+                    >
+                      Delete
+                    </button>
+                  </td>
                 </tr>
               ))
             )}
@@ -111,7 +152,7 @@ export default function VehiclePage() {
             >
               &times;
             </button>
-            <h2 className="text-2xl font-bold mb-4">Create Vehicle</h2>
+            <h2 className="text-2xl font-bold mb-4">{editId ? 'Edit Vehicle' : 'Create Vehicle'}</h2>
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div>
                 <label className="block mb-1 font-medium">Name</label>
@@ -138,7 +179,7 @@ export default function VehiclePage() {
                   className="px-4 py-2 rounded bg-primary text-white hover:bg-primary/90"
                   disabled={submitting}
                 >
-                  {submitting ? 'Creating...' : 'Create'}
+                  {submitting ? (editId ? 'Saving...' : 'Creating...') : (editId ? 'Save' : 'Create')}
                 </button>
               </div>
             </form>

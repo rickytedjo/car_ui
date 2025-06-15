@@ -23,6 +23,7 @@ export default function UserPage() {
     is_admin: false,
   });
   const [submitting, setSubmitting] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
 
   async function fetchData() {
     try {
@@ -47,16 +48,45 @@ export default function UserPage() {
     }));
   };
 
+  const handleEdit = (user: User) => {
+    setForm({
+      username: user.username,
+      email: user.email,
+      password: user.password,
+      is_admin: user.is_admin,
+    });
+    setEditId(user.id);
+    setShowModal(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) return;
+    setSubmitting(true);
+    try {
+      await api.delete(`/user/${id}`);
+      fetchData();
+    } catch (error) {
+      console.error('Error deleting user:', error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await api.post('/user', form);
+      if (editId) {
+        await api.patch(`/user/${editId}`, form);
+      } else {
+        await api.post('/user', form);
+      }
       setShowModal(false);
       setForm({ username: '', email: '', password: '', is_admin: false });
+      setEditId(null);
       fetchData();
     } catch (error) {
-      console.error('Error creating user:', error);
+      console.error(editId ? 'Error editing user:' : 'Error creating user:', error);
     } finally {
       setSubmitting(false);
     }
@@ -82,16 +112,17 @@ export default function UserPage() {
               <th className="px-4 py-2 text-left text-muted-foreground w-32">Password</th>
               <th className="px-4 py-2 text-left text-muted-foreground">Is Admin</th>
               <th className="px-4 py-2 text-left text-muted-foreground">Last Viewed</th>
+              <th className="px-4 py-2 text-left text-muted-foreground">Action</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5} className="text-center text-muted-foreground py-8">Loading...</td>
+                <td colSpan={6} className="text-center text-muted-foreground py-8">Loading...</td>
               </tr>
             ) : users.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center text-muted-foreground py-8">No users found.</td>
+                <td colSpan={6} className="text-center text-muted-foreground py-8">No users found.</td>
               </tr>
             ) : (
               users.map((user) => (
@@ -101,6 +132,21 @@ export default function UserPage() {
                   <td className="px-4 py-2 text-2xl select-none w-32 truncate" style={{ fontFamily: 'monospace', maxWidth: 120 }}>{'•'.repeat(user.password.length)}</td>
                   <td className="px-4 py-2">{user.is_admin ? 'Yes' : 'No'}</td>
                   <td className="px-4 py-2">{user.last_viewed}</td>
+                  <td className="px-4 py-2">
+                    <button
+                      className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 mr-2"
+                      onClick={() => handleEdit(user)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700"
+                      onClick={() => handleDelete(user.id)}
+                      disabled={submitting}
+                    >
+                      Delete
+                    </button>
+                  </td>
                 </tr>
               ))
             )}
@@ -119,7 +165,7 @@ export default function UserPage() {
             >
               &times;
             </button>
-            <h2 className="text-2xl font-bold mb-4">Create User</h2>
+            <h2 className="text-2xl font-bold mb-4">{editId ? 'Edit User' : 'Create User'}</h2>
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div>
                 <label className="block mb-1 font-medium">Username</label>
@@ -151,7 +197,7 @@ export default function UserPage() {
                   className="px-4 py-2 rounded bg-primary text-white hover:bg-primary/90"
                   disabled={submitting}
                 >
-                  {submitting ? 'Creating...' : 'Create'}
+                  {submitting ? (editId ? 'Saving...' : 'Creating...') : (editId ? 'Save' : 'Create')}
                 </button>
               </div>
             </form>

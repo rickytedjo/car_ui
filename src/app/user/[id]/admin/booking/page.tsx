@@ -39,8 +39,11 @@ export default function BookingPage() {
     vehicle: '',
     driver: '',
     admin_approval: 'PENDING',
+    corp_approval: 'PENDING',
+    status: 'PENDING',
   });
   const [submitting, setSubmitting] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
 
   async function fetchData() {
     try {
@@ -149,10 +152,11 @@ export default function BookingPage() {
         admin_id: userId,
         vehicle_id: form.vehicle,
         driver_id: form.driver,
-        admin_approval: form.admin_approval,
+        admin_approval: 'PENDING',
+        corp_approval: 'PENDING'
       });
       setShowModal(false);
-      setForm({ date_start: '', date_end: '', corp: '', vehicle: '', driver: '', admin_approval: 'PENDING' });
+      setForm({ date_start: '', date_end: '', corp: '', vehicle: '', driver: '', admin_approval: 'PENDING', corp_approval: 'PENDING', status: 'PENDING' });
       fetchData();
     } catch (error) {
       console.error('Error creating booking:', error);
@@ -161,7 +165,53 @@ export default function BookingPage() {
     }
   };
 
-  
+  const handleEdit = (booking: Booking) => {
+    setForm({
+      date_start: booking.date_start,
+      date_end: booking.date_end,
+      corp: booking.corp_id,
+      vehicle: booking.vehicle_id,
+      driver: booking.driver_id,
+      admin_approval: booking.admin_approval,
+
+      corp_approval: 'PENDING',
+      status: 'PENDING', // not shown in edit modal, but kept for form reset
+    });
+    setEditId(booking.id);
+    setShowModal(true);
+  };
+
+  const handleModalClose = () => {
+    setShowModal(false);
+    setForm({ date_start: '', date_end: '', corp: '', vehicle: '', driver: '', admin_approval: 'PENDING', corp_approval: 'PENDING', status: 'PENDING' });
+    setEditId(null);
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      if (editId) {
+        await api.patch(`/booking/${editId}`, {
+          date_start: form.date_start,
+          date_end: form.date_end,
+          corp_id: form.corp,
+          admin_id: userId,
+          vehicle_id: form.vehicle,
+          driver_id: form.driver,
+        });
+        setShowModal(false);
+        setForm({ date_start: '', date_end: '', corp: '', vehicle: '', driver: '', admin_approval: 'PENDING', corp_approval: 'PENDING', status: 'PENDING' });
+        setEditId(null);
+        fetchData();
+      }
+    } catch (error) {
+      console.error('Error editing booking:', error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleExport = async () => {
     try {
       const response = await api.post(
@@ -243,6 +293,12 @@ export default function BookingPage() {
                   <td className="px-4 py-2">{booking.driver}</td>
                   <td className="px-4 py-2">
                     <button
+                      className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 mr-2"
+                      onClick={() => handleEdit(booking)}
+                    >
+                      Edit
+                    </button>
+                    <button
                       className="px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700"
                       onClick={() => handleDelete(booking.id)}
                     >
@@ -256,19 +312,19 @@ export default function BookingPage() {
         </table>
       </div>
 
-      {/* Modal for creating booking */}
+      {/* Modal for create/edit booking */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
             <button
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl"
-              onClick={() => setShowModal(false)}
+              onClick={handleModalClose}
               aria-label="Close"
             >
               &times;
             </button>
-            <h2 className="text-2xl font-bold mb-4">Create Booking</h2>
-            <form className="space-y-4" onSubmit={handleSubmit}>
+            <h2 className="text-2xl font-bold mb-4">{editId ? 'Edit Booking' : 'Create Booking'}</h2>
+            <form className="space-y-4" onSubmit={editId ? handleEditSubmit : handleSubmit}>
               <div>
                 <label className="block mb-1 font-medium">Date Start</label>
                 <input className="w-full border rounded px-3 py-2" type="date" name="date_start" value={form.date_start} onChange={handleChange} required />
@@ -304,18 +360,20 @@ export default function BookingPage() {
                   ))}
                 </select>
               </div>
-              <div>
-                <label className="block mb-1 font-medium">Approval</label>
-                <select className="w-full border rounded px-3 py-2" name="admin_approval" value={form.admin_approval} onChange={handleChange} required>
-                  <option value="PENDING">Pending</option>
-                  <option value="APPROVED">Approved</option>
-                </select>
-              </div>
+              {!editId && (
+                <div>
+                  <label className="block mb-1 font-medium">Approval</label>
+                  <select className="w-full border rounded px-3 py-2" name="admin_approval" value={form.admin_approval} onChange={handleChange} required>
+                    <option value="PENDING">Pending</option>
+                    <option value="APPROVED">Approved</option>
+                  </select>
+                </div>
+              )}
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
                   className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
-                  onClick={() => setShowModal(false)}
+                  onClick={handleModalClose}
                   disabled={submitting}
                 >
                   Cancel
@@ -325,7 +383,7 @@ export default function BookingPage() {
                   className="px-4 py-2 rounded bg-primary text-white hover:bg-primary/90"
                   disabled={submitting}
                 >
-                  {submitting ? 'Creating...' : 'Create'}
+                  {submitting ? (editId ? 'Saving...' : 'Creating...') : (editId ? 'Save' : 'Create')}
                 </button>
               </div>
             </form>
